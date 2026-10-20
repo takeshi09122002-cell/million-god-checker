@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>ミリオンゴッド-設定判別</title>
+
+    <link rel="manifest" href="manifest.json">
+
+<style>
+body{
+    font-family:sans-serif;
+    background:#f5f5f5;
+    margin:0;
+    padding:15px;
+}
+
+h1{
+    text-align:center;
+    font-size:24px;
+}
+
+.card{
+    background:white;
+    padding:15px;
+    border-radius:12px;
+    margin-bottom:12px;
+    box-shadow:0 2px 5px rgba(0,0,0,.1);
+}
+
+.row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.counter{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+button{
+    width:50px;
+    height:50px;
+    font-size:24px;
+    border:none;
+    border-radius:10px;
+    background:#1976d2;
+    color:white;
+}
+
+input[type=number]{
+    width:100px;
+    font-size:20px;
+    text-align:center;
+}
+
+.value{
+    font-size:22px;
+    min-width:60px;
+    text-align:center;
+}
+
+.title{
+    font-size:18px;
+    font-weight:bold;
+}
+
+.rate{
+    margin-top:6px;
+    color:#d32f2f;
+    font-weight:bold;
+}
+
+.note{
+    color:#666;
+    font-size:12px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>ミリオンゴッド-設定判別</h1>
+
+<div style="text-align:center; margin-bottom:15px;">
+    <button id="resetBtn"
+        style="
+            width:150px;
+            background:#d32f2f;
+            font-size:15px;
+        ">
+        データリセット
+    </button>
+</div>
+
+<div class="card">
+<div class="title">G数</div>
+<input id="game" type="number">
+</div>
+
+<div class="card">
+<div class="title">初当たりG数</div>
+<input id="firstHit" type="number">
+</div>
+
+<div class="card">
+<div class="title">GG数</div>
+<div class="counter">
+<button data-target="gg" data-delta="-1">-</button>
+<input id="gg" type="number" value="0">
+<button data-target="gg" data-delta="1">+</button>
+</div>
+</div>
+
+<div class="card">
+    <div class="title">リプ3</div>
+
+    <div style="margin-top:10px;">カウント</div>
+    <div class="counter">
+        <button data-target="rep3" data-delta="-1">-</button>
+        <div id="rep3_view" class="value">0</div>
+        <button data-target="rep3" data-delta="1">+</button>
+    </div>
+
+    <div style="margin-top:10px;">HIT</div>
+    <div class="counter">
+        <button data-target="rep3hit" data-delta="-1">-</button>
+        <div id="rep3hit_view" class="value">0</div>
+        <button data-target="rep3hit" data-delta="1">+</button>
+    </div>
+
+    <div id="rep3Rate" class="rate">0%</div>
+
+    <div class="note">
+        ((推定値)設定4：20%　設定5：5%　設定6：33%)
+    </div>
+</div>
+
+
+<div class="card">
+    <div class="title">リプ4</div>
+
+    <div style="margin-top:10px;">カウント</div>
+    <div class="counter">
+        <button data-target="rep4" data-delta="-1">-</button>
+        <div id="rep4_view" class="value">0</div>
+        <button data-target="rep4" data-delta="1">+</button>
+    </div>
+
+    <div style="margin-top:10px;">HIT</div>
+    <div class="counter">
+        <button data-target="rep4hit" data-delta="-1">-</button>
+        <div id="rep4hit_view" class="value">0</div>
+        <button data-target="rep4hit" data-delta="1">+</button>
+    </div>
+
+    <div id="rep4Rate" class="rate">0%</div>
+
+    <div class="note">
+        ((推定値)設定4：60%　設定5：40%　設定6：70%)
+    </div>
+</div>
+
+<div id="rep4Rate" class="rate">0%</div>
+
+
+<div class="card">
+<div class="title">通常時ベルナビ</div>
+
+<div class="counter">
+<button data-target="bell" data-delta="-1">-</button>
+<div id="bell_view" class="value">0</div>
+<button data-target="bell" data-delta="1">+</button>
+</div>
+
+<div id="bellRate" class="rate">
+1/0
+</div>
+
+<div class="note">
+((推定値)設定4：1/160　設定5：1/140　設定6：1/110)
+</div>
+</div>
+
+<div class="card">
+<div class="title">AT中下段黄7A</div>
+
+<div class="counter">
+<button data-target="yellow7" data-delta="-1">-</button>
+<div id="yellow7_view" class="value">0</div>
+<button data-target="yellow7" data-delta="1">+</button>
+</div>
+
+<div id="yellowRate" class="rate">
+1/0
+</div>
+
+<div class="note">
+(下段黄7A=ナビ無し下段黄7かつ15枚払い出しのフラグ)
+</div>
+
+<div class="note">
+((推定値)設定4：1/45　設定5：1/40　設定6：1/35)
+</div>
+</div>
+
+<script>
+
+let data=JSON.parse(localStorage.getItem('godData'))||{
+rep3:0,
+rep3hit:0,
+rep4:0,
+rep4hit:0,
+bell:0,
+yellow7:0
+};
+
+function save(){
+data.gg=document.getElementById('gg').value;
+data.game=document.getElementById('game').value;
+data.firstHit=document.getElementById('firstHit').value;
+
+localStorage.setItem(
+'godData',
+JSON.stringify(data)
+)};
+
+update();
+
+function update(){
+
+document.getElementById("rep3_view").textContent=data.rep3;
+document.getElementById("rep3hit_view").textContent=data.rep3hit;
+
+document.getElementById("rep4_view").textContent=data.rep4;
+document.getElementById("rep4hit_view").textContent=data.rep4hit;
+
+document.getElementById("bell_view").textContent=data.bell;
+document.getElementById("yellow7_view").textContent=data.yellow7;
+
+let rep3Rate=
+data.rep3?
+(data.rep3hit/data.rep3*100):0;
+
+document.getElementById("rep3Rate").textContent=
+rep3Rate.toFixed(1)+"%";
+
+let rep4Rate=
+data.rep4?
+(data.rep4hit/data.rep4*100):0;
+
+document.getElementById("rep4Rate").textContent=
+rep4Rate.toFixed(1)+"%";
+
+
+let g=
+Number(document.getElementById("game").value||0);
+
+let first=
+Number(document.getElementById("firstHit").value||0);
+
+let gg=
+Number(document.getElementById("gg").value||0);
+
+let normalGame=
+g-first-(gg*55);
+
+if(data.bell>0&&normalGame>0){
+document.getElementById("bellRate").textContent=
+"1/"+Math.round(normalGame/data.bell);
+}
+
+if(data.yellow7>0&&gg>0){
+document.getElementById("yellowRate").textContent=
+"1/"+Math.round((gg*50)/data.yellow7);
+}
+
+saveStorageOnly();
+}
+
+function saveStorageOnly(){
+localStorage.setItem('godData',
+JSON.stringify({
+...data,
+game:document.getElementById('game').value,
+firstHit:document.getElementById('firstHit').value,
+gg:document.getElementById('gg').value
+}));
+}
+
+document.getElementById('game').value=data.game||"";
+document.getElementById('firstHit').value=data.firstHit||"";
+document.getElementById('gg').value=data.gg||0;
+
+document.querySelectorAll("button").forEach(btn=>{
+
+let timer;
+
+const exec=(multi)=>{
+
+let target=btn.dataset.target;
+
+let delta=
+Number(btn.dataset.delta)*multi;
+
+if(target==="gg"){
+let el=document.getElementById("gg");
+
+let val=Number(el.value||0)+delta;
+
+if(val<0) val=0;
+
+el.value=val;
+}
+else{
+
+data[target]+=delta;
+
+if(data[target]<0)
+data[target]=0;
+}
+
+update();
+};
+
+btn.addEventListener("click",()=>exec(1));
+
+btn.addEventListener("touchstart",()=>{
+
+timer=setTimeout(()=>{
+exec(10);
+},500);
+
+});
+
+btn.addEventListener("touchend",()=>{
+clearTimeout(timer);
+});
+
+});
+
+document
+.getElementById("game")
+.addEventListener("input",update);
+
+document
+.getElementById("firstHit")
+.addEventListener("input",update);
+
+document
+.getElementById("gg")
+.addEventListener("input",update);
+
+update();
+
+document.getElementById("resetBtn")
+.addEventListener("click", () => {
+
+    if (!confirm("すべてのデータをリセットしますか？")) {
+        return;
+    }
+
+    data = {
+        rep3: 0,
+        rep3hit: 0,
+        rep4: 0,
+        rep4hit: 0,
+        bell: 0,
+        yellow7: 0
+    };
+
+    document.getElementById("game").value = "";
+    document.getElementById("firstHit").value = "";
+    document.getElementById("gg").value = 0;
+
+    localStorage.removeItem("godData");
+
+    update();
+});
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker
+    .register("service-worker.js")
+    .then(() => console.log("SW登録成功"))
+    .catch(err => console.error(err));
+}
+
+</script>
+</body>
+</html>
